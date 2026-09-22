@@ -125,7 +125,9 @@ bool savePipe(Pipe& pipe) {
     }
     out.precision(15);
     out << pipe.name << "\n";
-    out << pipe.len << " " << pipe.diametr << " " << pipe.remont << "\n";
+    out << pipe.len << "\n";
+    out << pipe.diametr << "\n";
+    out << pipe.remont << "\n";
     return true;
 }
 
