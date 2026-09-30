@@ -45,6 +45,7 @@ double readDouble(const string& text)
         bool isCorrect = !cin.fail() && cin.peek() == '\n' && value > 0;
 
         if (isCorrect)
+          
             return value;
 
         cin.clear();
@@ -57,8 +58,7 @@ string readName(const string& text) {
     string name;
     while (true) {
         cout << text;
-        cin.ignore(1000, '\n');
-        getline(cin, name);
+        getline(cin >> ws, name);
         if (name != "") 
             return name;
 
@@ -164,56 +164,80 @@ bool savePandC(const Pipe& pipe, bool hasPipe, const CS& cs, bool hasCS) {
     return !out.fail();
 }
 
+bool loadPipe(istream& in, Pipe& pipe, bool& hasPipe)
+{
+    bool flag = false;
+    in >> flag;
+    if (in.fail()) {
+        return false;
+    }
+    in.ignore(1000, '\n');
+
+    Pipe loaded;
+    if (flag) {
+        getline(in, loaded.name);
+        in >> loaded.len >> loaded.diametr >> loaded.remont;
+        in.ignore(1000, '\n');
+
+        if (in.fail() || loaded.name.empty() || loaded.len <= 0 || loaded.diametr <= 0) {
+            return false;
+        }
+    }
+
+    hasPipe = flag;
+    if (flag) {
+        pipe = loaded;
+    }
+    return true;
+}
+bool loadCS(istream& in, CS& cs, bool& hasCS)
+{
+    bool flag = false;
+    in >> flag;
+    if (in.fail()) {
+        return false;
+    }
+    in.ignore(1000, '\n');
+
+    CS loaded;
+    if (flag) {
+        getline(in, loaded.name);
+        in >> loaded.shopcount >> loaded.workShopcount >> loaded.stationClass;
+
+        if (in.fail() || loaded.name.empty() || loaded.shopcount <= 0 || loaded.stationClass <= 0) {
+            return false;
+        }
+        if (loaded.workShopcount < 0 || loaded.workShopcount > loaded.shopcount) {
+            return false;
+        }
+    }
+
+    hasCS = flag;
+    if (flag) {
+        cs = loaded;
+    }
+    return true;
+}
+
 bool loadPandC(Pipe& pipe, bool& hasPipe, CS& cs, bool& hasCS)
 {
     ifstream in("data.txt");
     if (!in) {
         return false;
     }
+    Pipe tmpPipe = pipe;
+    CS tmpCS = cs;
+    bool tmpHasPipe = hasPipe;
+    bool tmpHasCS = hasCS;
 
-    bool pipeFlag = false;
-    bool csFlag = false;
-    Pipe loadedPipe;
-    CS loadedCS;
-
-    in >> pipeFlag;
-    in.ignore(1000, '\n');
-
-    if (pipeFlag) {
-        getline(in, loadedPipe.name);
-        in >> loadedPipe.len >> loadedPipe.diametr >> loadedPipe.remont;
-        in.ignore(1000, '\n');
-
-        if (in.fail() || loadedPipe.name.empty() || loadedPipe.len <= 0 || loadedPipe.diametr <= 0) {
-            return false;
-        }
-    }
-
-    in >> csFlag;
-    in.ignore(1000, '\n');
-
-    if (csFlag) {
-        getline(in, loadedCS.name);
-        in >> loadedCS.shopcount >> loadedCS.workShopcount >> loadedCS.stationClass;
-
-        if (in.fail() || loadedCS.name.empty() || loadedCS.shopcount <= 0 || loadedCS.stationClass <= 0) {
-            return false;
-        }
-        if (loadedCS.workShopcount < 0 || loadedCS.workShopcount > loadedCS.shopcount) {
-            return false;
-        }
-    }
-
-    if (in.fail()) {
+    if (!loadPipe(in, tmpPipe, tmpHasPipe) || !loadCS(in, tmpCS, tmpHasCS)) {
         return false;
     }
 
-    hasPipe = pipeFlag;
-    if (hasPipe) pipe = loadedPipe;
-
-    hasCS = csFlag;
-    if (hasCS) cs = loadedCS;
-
+    pipe = tmpPipe;
+    cs = tmpCS;
+    hasPipe = tmpHasPipe;
+    hasCS = tmpHasCS;
     return true;
 }
 
@@ -318,4 +342,3 @@ int main() {
     }
     return 0;
 }
-
