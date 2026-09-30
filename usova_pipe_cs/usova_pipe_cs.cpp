@@ -57,6 +57,7 @@ string readName(const string& text) {
     string name;
     while (true) {
         cout << text;
+        cin.ignore(1000, '\n');
         getline(cin, name);
         if (name != "") 
             return name;
@@ -93,8 +94,7 @@ void editPipe(Pipe& pipe) {
     pipe.remont = (choice == 1);
     cout << (pipe.remont ? "The pipe is under repair" : "The pipe is in operation");
 
-
-};
+}
 
 
 CS readCS() {
@@ -106,7 +106,7 @@ CS readCS() {
     return cs;
 }
 
-void printCS(const CS& cs) {//!!
+void printCS(const CS& cs) {
     cout << "CS\n";
     cout << "Name: " << cs.name << "\n";
     cout << "Shops: " << cs.shopcount << "\n";
@@ -139,7 +139,7 @@ void editCS(CS& cs) {
     }
 }
 
-bool savePandC(const Pipe& pipe, bool hasPipe, CS& cs, bool hasCS) {
+bool savePandC(const Pipe& pipe, bool hasPipe, const CS& cs, bool hasCS) {
     ofstream out("data.txt");
     if (!out) {
         return false;
@@ -236,8 +236,6 @@ int main() {
 
     CS cs;
     bool hasCS = false;
-
-    int menuChoice = -1;
 
     while (1) {
         printMenu();
