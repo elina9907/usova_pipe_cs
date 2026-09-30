@@ -1,5 +1,4 @@
-﻿#include <cstdlib>
-#include <fstream>
+﻿#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -19,16 +18,16 @@ struct CS {
     int stationClass;
 };
 
-int readInt(string text, int minValue = 0, int maxValue= 7) {
+int readInt(const string& text, int minValue = 0, int maxValue= 7) {
     int value = 0;
     while (true) {
         cout << text;
         cin >> value;
         bool Correct = !cin.fail() && cin.peek() == '\n' && value >= minValue && value <= maxValue;
 
-        if (Correct)
-            cin.ignore();
+        if (Correct) {
             return value;
+        }
         
         cin.clear();
         cin.ignore(1000, '\n');
@@ -36,7 +35,7 @@ int readInt(string text, int minValue = 0, int maxValue= 7) {
     }
 }
 
-double readDouble(string text) 
+double readDouble(const string& text) 
 {
     double value = 0;
     while (true) {
@@ -46,7 +45,6 @@ double readDouble(string text)
         bool isCorrect = !cin.fail() && cin.peek() == '\n' && value > 0;
 
         if (isCorrect)
-            cin.ignore();
             return value;
 
         cin.clear();
@@ -55,14 +53,15 @@ double readDouble(string text)
     }
 }
 
-string readName(string text) {
+string readName(const string& text) {
     string name;
     while (true) {
         cout << text;
         getline(cin, name);
-        if (name != "") {
+        if (name != "") 
             return name;
-        }
+
+        cin.clear();
         cout << "Error, the name must not be empty\n";
     }
 }
@@ -77,7 +76,7 @@ Pipe readPipe() {
     return pipe;
 }
 
-void printPipe(Pipe& pipe) {
+void printPipe(const Pipe& pipe) {
     cout << "Pipe\n";
     cout << "Name: " << pipe.name << "\n";
     cout << "Length (km): " << pipe.len << "\n";
@@ -96,24 +95,6 @@ void editPipe(Pipe& pipe) {
 
 
 };
-bool loadPipe(Pipe& pipe) {
-    ifstream in("pipe.txt");
-    if (!in) {
-        return false;
-    }
-
-    Pipe loaded;
-    getline(in, loaded.name);
-    in >> loaded.len;
-    in >> loaded.diametr;
-    in>> loaded.remont;
-
-    if (in.fail() || loaded.name == "" || loaded.len <= 0 || loaded.diametr <= 0) {
-        return false;
-    }
-    pipe = loaded;
-    return true;
-}
 
 
 CS readCS() {
@@ -125,7 +106,7 @@ CS readCS() {
     return cs;
 }
 
-void printCS(CS& cs) {
+void printCS(const CS& cs) {//!!
     cout << "CS\n";
     cout << "Name: " << cs.name << "\n";
     cout << "Shops: " << cs.shopcount << "\n";
@@ -158,7 +139,7 @@ void editCS(CS& cs) {
     }
 }
 
-bool savePandC(Pipe& pipe, bool hasPipe, CS& cs, bool hasCS) {
+bool savePandC(const Pipe& pipe, bool hasPipe, CS& cs, bool hasCS) {
     ofstream out("data.txt");
     if (!out) {
         return false;
@@ -180,10 +161,10 @@ bool savePandC(Pipe& pipe, bool hasPipe, CS& cs, bool hasCS) {
         out << cs.stationClass << "\n";
     }
 
-    return true;
+    return !out.fail();
 }
 
-bool loadPandC(Pipe& pipe, bool& hasPipe, CS& cs, bool& hasCS) 
+bool loadPandC(Pipe& pipe, bool& hasPipe, CS& cs, bool& hasCS)
 {
     ifstream in("data.txt");
     if (!in) {
@@ -191,44 +172,47 @@ bool loadPandC(Pipe& pipe, bool& hasPipe, CS& cs, bool& hasCS)
     }
 
     bool pipeFlag = false;
+    bool csFlag = false;
+    Pipe loadedPipe;
+    CS loadedCS;
+
     in >> pipeFlag;
-    in.ignore();
+    in.ignore(1000, '\n');
 
     if (pipeFlag) {
-        Pipe loaded;
-        getline(in, loaded.name);
-        in >> loaded.len;
-        in >> loaded.diametr;
-        in >> loaded.remont;
-        in.ignore();
+        getline(in, loadedPipe.name);
+        in >> loadedPipe.len >> loadedPipe.diametr >> loadedPipe.remont;
+        in.ignore(1000, '\n');
 
-        if (in.fail() || loaded.name == "" || loaded.len <= 0 || loaded.diametr <= 0) {
+        if (in.fail() || loadedPipe.name.empty() || loadedPipe.len <= 0 || loadedPipe.diametr <= 0) {
             return false;
         }
-        pipe = loaded;
-        hasPipe = true;
     }
 
-    bool csFlag = false;
     in >> csFlag;
-    in.ignore();
+    in.ignore(1000, '\n');
 
     if (csFlag) {
-        CS loaded;
-        getline(in, loaded.name);
-        in >> loaded.shopcount;
-        in >> loaded.workShopcount;
-        in >> loaded.stationClass;
+        getline(in, loadedCS.name);
+        in >> loadedCS.shopcount >> loadedCS.workShopcount >> loadedCS.stationClass;
 
-        if (in.fail() || loaded.name == "" || loaded.shopcount <= 0 || loaded.stationClass <= 0) {
+        if (in.fail() || loadedCS.name.empty() || loadedCS.shopcount <= 0 || loadedCS.stationClass <= 0) {
             return false;
         }
-        if (loaded.workShopcount < 0 || loaded.workShopcount > loaded.shopcount) {
+        if (loadedCS.workShopcount < 0 || loadedCS.workShopcount > loadedCS.shopcount) {
             return false;
         }
-        cs = loaded;
-        hasCS = true;
     }
+
+    if (in.fail()) {
+        return false;
+    }
+
+    hasPipe = pipeFlag;
+    if (hasPipe) pipe = loadedPipe;
+
+    hasCS = csFlag;
+    if (hasCS) cs = loadedCS;
 
     return true;
 }
@@ -255,12 +239,10 @@ int main() {
 
     int menuChoice = -1;
 
-    while (menuChoice != 0) {
+    while (1) {
         printMenu();
-        menuChoice = readInt("Choose one: ", 0, 7);
-        cout << "\n";
 
-        switch (menuChoice) {
+        switch (readInt("Choose one: ", 0, 7)) {
         case 1:
             pipe = readPipe();
             hasPipe = true;
@@ -312,7 +294,7 @@ int main() {
             if (!hasPipe && !hasCS) {
                 cout << "There is nothing to save\n";
             }
-            else if ((pipe, hasPipe, cs, hasCS)) {
+            else if (savePandC(pipe, hasPipe, cs, hasCS)) {
                 cout << "Saved to data.txt\n";
             }
             else {
@@ -333,7 +315,7 @@ int main() {
 
         case 0:
             cout << "You are out of the menu\n";
-            break;
+            return 0;
         }
     }
     return 0;
