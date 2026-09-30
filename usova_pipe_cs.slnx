@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="usova_pipe_cs/usova_pipe_cs.vcxproj" />
+  <Project Path="usova_pipe_cs/usova_pipe_cs.vcxproj" Id="e1ed018b-7143-4a16-a463-0139ed900974" />
 </Solution>
